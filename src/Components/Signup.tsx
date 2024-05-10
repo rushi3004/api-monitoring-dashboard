@@ -1,7 +1,6 @@
-// Signup.tsx
 import React, { useState } from 'react';
 import axios from 'axios';
-import {useNavigate, Link } from 'react-router-dom'; // Import Link from react-router-dom
+import {useNavigate, Link } from 'react-router-dom';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -54,7 +53,7 @@ const Signup = () => {
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="form-control" placeholder="Password" />
           </div>
           <button onClick={handleSignup} className="btn btn-primary w-100">Signup</button>
-          <p className="mt-3 mb-0">Alreay signup? <Link to="/">login</Link></p> {/* Link to signup page */}
+          <p className="mt-3 mb-0">Alreay signup? <Link to="/">login</Link></p> 
 
         </div>
       </div>

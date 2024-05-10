@@ -15,9 +15,8 @@ const postSchema = new mongoose.Schema(
         required: true,
         unique: true
     },
-    cretedBy:{
-        type:mongoose.ObjectId,
-        ref:'userinfos'
+    createdDate:{
+        type:Date
     }
 }, 
 {
