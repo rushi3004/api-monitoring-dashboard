@@ -1,8 +1,8 @@
 import React, { useState, useContext, useEffect } from 'react';
 import axios from 'axios';
-import fileDownload from 'js-file-download';
 import { useNavigate } from 'react-router-dom';
 import { DataContext } from '../Context/DataProvider';
+import Header from './Header';
 
 interface Post {
   title: string;
@@ -19,17 +19,18 @@ const initialPost: Post = {
 };
 
 const HomePage: React.FC = () => {
-  const [totalFileSize, setTotalFileSize] = useState<number>(0);
   const [apiCallsCount, setApiCallsCount] = useState<number>(0);
   const [post, setPost] = useState<Post>(initialPost);
+  const [totalDownloadSize,setTotalDownloadSize] = useState<number>(0)
   const { accounts } = useContext(DataContext);
   const navigate = useNavigate();
 
 
   const fetchApiCallCount = async () => {
     try {
-      const currentDate = new Date().toISOString().slice(0.10)
-      const response = await fetch(`http://localhost:5000/counter?date=${currentDate}`);
+      const username = accounts[0].username
+      const currentDate = new Date().toISOString().slice(0,10)
+      const response = await fetch(`http://localhost:5000/counter?date=${currentDate}&username=${username}`);
 
       console.log("api count",response);
       
@@ -48,6 +49,7 @@ const HomePage: React.FC = () => {
 
   useEffect(() =>{
     fetchApiCallCount();
+    fetchtotaldownloadSize()
   },[])
   
   useEffect(() => {
@@ -56,18 +58,9 @@ const HomePage: React.FC = () => {
     }
   }, [accounts]);
 
-  const handleDownload = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/download', { responseType: 'blob' });
-      const fileSizeInBytes = response.data.size;
-      const fileSizeInKB = fileSizeInBytes / 1024;
-      setTotalFileSize((prevTotalFileSize) => prevTotalFileSize + fileSizeInKB);
-      fileDownload(response.data, 'apifile.pdf');
-    } catch (error) {
-      console.error('Error downloading PDF:', error);
-    }
-  };
 
+
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setPost((prevPost) => ({ ...prevPost, [name]: value }));
@@ -104,17 +97,49 @@ const HomePage: React.FC = () => {
     }
   };
 
-  const handleLogout = () => {
-    navigate('/');
-  };
+  const handleDownloadPDF = async () => {
+    try {
+        const response = await axios.get('http://localhost:5000/download?username=' + accounts[0].username, {
+            responseType: 'blob', 
+        });
 
+        const blob = new Blob([response.data], { type: 'application/pdf' });
+
+        const downloadLink = document.createElement('a');
+        downloadLink.href = window.URL.createObjectURL(blob);
+        downloadLink.setAttribute('download', 'apifile.pdf');
+        downloadLink.click();
+
+        fetchtotaldownloadSize();
+
+    } catch (error) {
+        console.error('Error in downloading', error);
+    }
+};
+
+ 
+  const fetchtotaldownloadSize = async () => {
+    try {
+      const username = accounts[0].username;
+      const date = new Date().toISOString().slice(0,10)
+
+      const response = await axios.get(`http://localhost:5000/totalFileSize?username=${username}&date=${date}`)
+
+      console.log("res",response);
+      
+      if(response.status === 200){
+        console.log('download',response.data.totalFileSize);
+        
+        setTotalDownloadSize(response.data.totalFileSize)
+      }
+    } catch (error) {
+      
+    }
+  }
   return (
+    <>
+    <Header/>
     <div className="container mt-5">
-      <div style={{ position: 'fixed', top: '60px', right: '20px' }}>
-        <button onClick={handleLogout} className="btn btn-primary mr-0">
-          Logout
-        </button>
-      </div>
       <div className="row">
         <div className="col-md-8 offset-md-2">
           <p className="h2 mb-3 text-primary font-weight-bold">Create your Blog</p>
@@ -149,14 +174,16 @@ const HomePage: React.FC = () => {
             </button>
           </form>
           <p>For more detailed information, you can download our PDF brochure.</p>
-          <button className="btn btn-primary" onClick={handleDownload}>
+          <button className="btn btn-primary" onClick={handleDownloadPDF}>
             Download PDF
           </button>
-          <p>Total file size: {totalFileSize.toFixed(2)} KB</p>
+          <p>Total Downloaded file size:{totalDownloadSize}KB</p>
+          
           <p>API calls count: {apiCallsCount !== null ? apiCallsCount :'Loading Count...'}</p>
         </div>
       </div>
     </div>
+    </>
   );
 };
 

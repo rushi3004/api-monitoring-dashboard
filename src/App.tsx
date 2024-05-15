@@ -4,6 +4,7 @@ import Signup from './Components/Signup';
 import {BrowserRouter, Routes,Route,Outlet,Navigate} from 'react-router-dom'
 import DataProvider from './Context/DataProvider';
 import HomePage from './Components/Home';
+import DashBoard from './Components/DashBoard/DashBoard';
 
 
 const PrivateRoute = ({isAuthenticated,...props}:any) =>{
@@ -20,7 +21,7 @@ const App = () => {
   return (
     <DataProvider>
     <BrowserRouter>
-    <div style={{marginTop:"80px"}}>
+    <div>
       <Routes>
      <Route path='/login' element={<Login isUserAuthenticated={isUserAuthenticated}/>}/>
       
@@ -28,6 +29,10 @@ const App = () => {
       <Route path='/' element={<HomePage/>}/>
       </Route>
       <Route path='/signup' element={<Signup/>}/>
+
+      <Route path='/dashboard' element={<PrivateRoute isAuthenticated={isAuthenticated}/>}>
+      <Route path='/dashboard' element={<DashBoard/>}/>
+      </Route>
       </Routes>
     </div>
       </BrowserRouter>

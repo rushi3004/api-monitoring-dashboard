@@ -1,7 +1,12 @@
+const { required } = require('joi');
 const mongoose = require('mongoose');
 
 const CounterSchema = new mongoose.Schema({
-    name: { type: String, required: true, unique: true },
+    name: { type: String, required: true},
+    username:{
+        type:String,
+        required:true
+    },
     count: { type: Number, default: 0 },
     createdDate:{
         type:Date

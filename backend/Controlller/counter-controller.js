@@ -1,15 +1,15 @@
 const Counter = require('../models/counter')
 
-const counter = async (req,res) => {
+const counter =async (req,res) => {
     try {
-       const {date} = req.query;
+       const {date,username} = req.query;
 
-       if(!date){
-        return res.status(200).json({error:"Date is required"})
+       if(!date || !username){
+        return res.status(200).json({error:"Date is required and username required"})
        }
 
        const formattedDate = new Date(date).toISOString().slice(0,10)
-       const counters = await Counter.findOne({createdDate:formattedDate});
+       const counters = await Counter.findOne({createdDate:formattedDate,username});
 
        if(counters){
         res.status(200).json({count:counters.count})
@@ -20,5 +20,4 @@ const counter = async (req,res) => {
         res.status(500).json({error:"Internal Server Error"})
     }
 }
-
 module.exports = {counter}
