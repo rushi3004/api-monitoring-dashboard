@@ -16,7 +16,7 @@ const PrivateRoute = ({isAuthenticated,...props}:any) =>{
 }
 
 const App = () => {
-  const [isAuthenticated,isUserAuthenticated] = useState(false)
+   const [isAuthenticated,isUserAuthenticated] = useState(false)
 
   return (
     <DataProvider>
@@ -37,6 +37,7 @@ const App = () => {
     </div>
       </BrowserRouter>
       </DataProvider>
+    // <DashBoard/>
   );
 };
 

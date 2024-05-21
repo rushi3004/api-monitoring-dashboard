@@ -24,7 +24,7 @@ const Header: React.FC = () => {
             </li>
           </ul>
         </div>
-        <button className="btn btn-primary" onClick={handleLogout}>Logout</button>
+        <button className="btn btn-primary " onClick={handleLogout}>Logout</button>
       </div>
     </nav>
   );

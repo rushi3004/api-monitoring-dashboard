@@ -1,7 +1,7 @@
-const moment = require('moment')
-const DownloadStats = require('../models/download')
-const Counter = require('../models/counter')
-const Bill = require('../models/CalculateBill')
+const moment = require('moment');
+const DownloadStats = require('../models/download');
+const Counter = require('../models/counter');
+const Bill = require('../models/CalculateBill');
 
 const CalBill = async (req, res) => {
     try {
@@ -10,20 +10,24 @@ const CalBill = async (req, res) => {
         if (!date || !username) {
             return res.status(400).json({ error: "Date and username are required" });
         }
+        const formattedDate = moment(date).format('DD-MM-YY');
+        const isoDate = moment(date).toISOString();
 
-        // Define costs
+
+        let dailyBil = await Bill.findOne({
+            username,date:formattedDate
+        })
         const apiCallCost = 5; // $5 per API call
-        const downloadSizeCost = 0.05; // $0.5 per KB
+        const downloadSizeCost = 0.05; // $0.05 per KB
 
-        // Get API call count
-        const formattedDate = new Date(date).toISOString().slice(0, 10);
-        const apiCallResponse = await Counter.findOne({ createdDate: formattedDate, username });
+        if(!dailyBil){
+       
+        const apiCallResponse = await Counter.findOne({ createdDate: isoDate, username });
         const apiCallCount = apiCallResponse ? apiCallResponse.count : 0;
 
-        // Get total download size
         const downloadStats = await DownloadStats.find({
             username: username,
-            date: { $gte: new Date(formattedDate), $lt: new Date(formattedDate).setDate(new Date(formattedDate).getDate() + 1) }
+            date: { $gte: new Date(isoDate), $lt: new Date(isoDate).setDate(new Date(isoDate).getDate() + 1) }
         });
 
         let totalDownloadSize = 0;
@@ -31,33 +35,67 @@ const CalBill = async (req, res) => {
             totalDownloadSize += stat.fileSize;
         });
 
-        // Calculate bill
         const apiCallBill = apiCallCount * apiCallCost;
-        const downloadSizeBill = totalDownloadSize * downloadSizeCost;
-        const totalBill = apiCallBill + downloadSizeBill;
+        const downloadSizeBill = (totalDownloadSize * downloadSizeCost).toFixed(5);
+        const totalBill = (apiCallBill + downloadSizeBill);
 
-        console.log("apiCallBill",apiCallBill);
-        console.log("download",downloadSizeBill);
-        // Save bill to database
+        console.log("apiCallBill", apiCallBill);
+        console.log("download", downloadSizeBill);
+
         const bill = new Bill({
             username,
             date: formattedDate,
             apiCallCount,
             totalDownloadSize,
-            apiCallBill: apiCallBill * apiCallCost,
-            downloadSizeBill: downloadSizeBill * downloadSizeCost,
-            totalBill: totalBill * (apiCallCost + downloadSizeCost)
+            apiCallBill: apiCallBill,
+            downloadSizeBill: downloadSizeBill,
+            totalBill: (totalBill)
         });
+
         await bill.save();
 
         res.status(200).json({ apiCallBill, downloadSizeBill, totalBill });
+    }else{
+
+        console.log("Daily Bill is updating");
+
+        const apiCallResponse = await Counter.findOne({ createdDate: isoDate, username });
+        const apiCallCount = apiCallResponse ? apiCallResponse.count : 0;
+
+        const downloadStats = await DownloadStats.find({
+            username: username,
+            date: { $gte: new Date(isoDate), $lt: new Date(isoDate).setDate(new Date(isoDate).getDate() + 1) }
+        });
+
+        let totalDownloadSize = 0;
+        downloadStats.forEach(stat => {
+            totalDownloadSize += stat.fileSize;
+        });
+
+        const apiCallBill = apiCallCount * apiCallCost;
+        const downloadSizeBill = (totalDownloadSize * downloadSizeCost).toFixed(5);
+        const totalBill = apiCallBill + downloadSizeBill;
+
+        console.log("apiCallBill", apiCallBill);
+        console.log("download", downloadSizeBill);
+
+        dailyBil.apiCallCount = apiCallCount;
+        dailyBil.totalDownloadSize= totalDownloadSize;
+        dailyBil.apiCallBill = apiCallBill;
+        dailyBil.downloadSizeBill = downloadSizeBill;
+        dailyBil.totalBill = (totalBill);
+        dailyBil.date = formattedDate;
+        
+
+        await dailyBil.save();
+
+        res.status(200).json({ totalBill:dailyBil.totalBill });
+
+    }
     } catch (error) {
         console.error('Error in calculating bill', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
 
-
-
-
-module.exports = {CalBill}
+module.exports = { CalBill };

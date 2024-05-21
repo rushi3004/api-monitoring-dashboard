@@ -13,29 +13,27 @@ const calculateMonthlyBill = async (req, res) => {
 
         const startDate = moment(`${year}-${month}-01`).startOf('month');
         const endDate = moment(startDate).endOf('month');
+        const monthName = startDate.format("MMMM");
 
         console.log("start", startDate);
         console.log('end', endDate);
 
-        // Find existing monthly bill for the same user and month
-        let monthlyBill = await MonthlyBill.findOne({ username, month, year });
-
-        if (!monthlyBill) {
-            // If monthly bill doesn't exist, calculate and create a new one
-
-            // Define costs
-            const apiCallCost = 5; // $5 per API call
-            const downloadSizeCost = 0.05; // $0.05 per KB
-
-            // Get API call count
+        let monthlyBill = await MonthlyBill.findOne({ username, month: monthName, year });
+        
+        // Define costs
+            const apiCallCost = 5; 
+            const downloadSizeCost = 0.05; 
+            
+            if (!monthlyBill) {
+            
             const apiCallResponse = await Counter.aggregate([
                 {
                     $match: {
                         username,
-                        // date: {
-                        //     $gte: startDate.toDate(),
-                        //     $lte: endDate.toDate()
-                        // }
+                        createdDate: {
+                            $gte: startDate.toDate(),
+                            $lte: endDate.toDate()
+                        }
                     }
                 },
                 {
@@ -45,10 +43,11 @@ const calculateMonthlyBill = async (req, res) => {
                     }
                 }
             ]);
-            
-            const apiCallCount = apiCallResponse.length > 0 ? apiCallResponse[0].totalApiCalls : 0;
 
-            // Get total download size
+            const apiCallCount = apiCallResponse.length > 0 ? apiCallResponse[0].totalApiCalls : 0;
+            console.log("Apicallcount", apiCallCount);
+            console.log("Apicallresponse", apiCallResponse);
+
             const downloadStats = await DownloadStats.aggregate([
                 {
                     $match: {
@@ -68,16 +67,17 @@ const calculateMonthlyBill = async (req, res) => {
             ]);
 
             const totalDownloadSize = downloadStats.length > 0 ? downloadStats[0].totalDownloadSize : 0;
-            
-            // Calculate bill
+
             const apiCallBill = apiCallCount * apiCallCost;
             const downloadSizeBill = totalDownloadSize * downloadSizeCost;
             const totalBill = apiCallBill + downloadSizeBill;
 
-            // Save new monthly bill to database
+            console.log("downloadStat", downloadStats);
+            console.log("APIbill", apiCallBill);
+            console.log("downloadbill", downloadSizeBill);
             monthlyBill = new MonthlyBill({
                 username,
-                month,
+                month: monthName,
                 year,
                 apiCallCount,
                 totalDownloadSize,
@@ -90,16 +90,16 @@ const calculateMonthlyBill = async (req, res) => {
 
             console.log("New monthly bill created:", monthlyBill);
         } else {
-            // If monthly bill exists, update its fields
-            // Add logic here to update other fields if needed
             console.log("Monthly bill already exists. Updating...");
-        
-            // Fetch the latest API call count from Counter collection
+
             const apiCallResponse = await Counter.aggregate([
                 {
                     $match: {
                         username,
-                        
+                        createdDate: {
+                            $gte: startDate.toDate(),
+                            $lte: endDate.toDate()
+                        }
                     }
                 },
                 {
@@ -109,12 +109,11 @@ const calculateMonthlyBill = async (req, res) => {
                     }
                 }
             ]);
-            
-            const apiCallCount = apiCallResponse.length > 0 ? apiCallResponse[0].totalApiCalls : 0;
-            
-            console.log('Apicount',apiCallCount);
 
-            // Fetch the latest total download size from DownloadStats collection
+            const apiCallCount = apiCallResponse.length > 0 ? apiCallResponse[0].totalApiCalls : 0;
+
+            console.log('Apicount', apiCallCount);
+
             const downloadStats = await DownloadStats.aggregate([
                 {
                     $match: {
@@ -132,29 +131,27 @@ const calculateMonthlyBill = async (req, res) => {
                     }
                 }
             ]);
-            
-            console.log('download',downloadStats);
+
+            console.log('download', downloadStats);
 
             const totalDownloadSize = downloadStats.length > 0 ? downloadStats[0].totalDownloadSize : 0;
 
-            console.log('downloadsize',totalDownloadSize);
-            const apiCallCost = 5; // $5 per API call
-            const downloadSizeCost = 0.05; // $0.05 per KB
-            // Recalculate the total bill based on the latest data
+            console.log('downloadsize', totalDownloadSize);
+         
+
             const apiCallBill = apiCallCount * apiCallCost;
             const downloadSizeBill = totalDownloadSize * downloadSizeCost;
             const totalBill = apiCallBill + downloadSizeBill;
-        
-            // Update the existing monthly bill document
+
             monthlyBill.apiCallCount = apiCallCount;
             monthlyBill.totalDownloadSize = totalDownloadSize;
             monthlyBill.apiCallBill = apiCallBill;
             monthlyBill.downloadSizeBill = downloadSizeBill;
-            monthlyBill.totalBill = totalBill;
-        
-            // Save the updated monthly bill to database
+            monthlyBill.totalBill = (totalBill).toFixed(5);
+            monthlyBill.month = monthName;
+
             await monthlyBill.save();
-        
+
             console.log("Monthly bill updated:", monthlyBill);
         }
 
