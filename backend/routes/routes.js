@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { singupUser, loginUser, logoutUser } = require('../Controlller/user-controller');
 const { authenticateToken } = require('../Controlller/jwt-controller')
-const { createPost } = require('../Controlller/post-controller');
+const { createPost,upload ,getAllPost} = require('../Controlller/post-controller');
 const { counter } = require('../Controlller/counter-controller');
 const { download, getDownloadSize } = require('../Controlller/download-controller');
 const { CalBill } = require('../Controlller/CalculateBill-controller');
@@ -15,12 +15,13 @@ const { display_bill } = require('../Controlller/Display_Bill');
 router.post('/login', loginUser);
 router.post('/signup', singupUser);
 router.post('/logout',logoutUser); 
-router.post('/create',authenticateToken,createPost)
+router.post('/create',upload.single('image'),authenticateToken ,createPost)
+router.get('/getAllPost',getAllPost);
 router.get('/counter',counter)
 router.get('/download',download)
 router.get('/totalFileSize', getDownloadSize);
 router.post('/calculateBill',CalBill)
-router.post('/monthlyBill',calculateMonthlyBill)
+router.post('/monthlyBillCount',calculateMonthlyBill)
 router.get('/bill-array',DailyBill)
 router.get('/monthly_bill',MonthlyBill)
 router.get('/displaybill', display_bill)

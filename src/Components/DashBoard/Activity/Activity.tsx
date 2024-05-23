@@ -6,6 +6,10 @@ import Mainchart from '../chart/MainChart';
 import Piechart from '../chart/PiaChart';
 import { DataContext } from '../../../Context/DataProvider';
 import Select from 'react-select';
+import { useNavigate } from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.min.css'
+import moment from 'moment';
+
 
 const monthOptions = [
     { value: '01', label: 'January' },
@@ -26,10 +30,11 @@ function Activity() {
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [showMonth,setShowMonth] = useState<any>(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-  const [setSelectMonth] = useState<any>(null)
-  const [setMonthlyBill] = useState<any>(null)
-  const [setDailyBill] = useState<any>(null)
+  const [selectMonth,setSelectMonth] = useState<any>(null)
+  const [monthlyBill,setMonthlyBill] = useState<any>(null)
+  const [dailyBill,setDailyBill] = useState<any>(null)
   const {accounts} = useContext(DataContext)
+  const navigate = useNavigate()
 
   const handleDailyBillClick = () => {
     setShowDatePicker((prev) => !prev);
@@ -45,7 +50,7 @@ function Activity() {
 
   const calculatebill = async(date:Date) =>{
     const username = accounts[0].username;
-    const formattedDate = date.toISOString().split('T')[0]
+    const formattedDate = moment(date).format('DD-MM-YYYY');
 
     try {
         const response = await axios.post(`http://localhost:5000/calculateBill?date=${formattedDate}&username=${username}`)
@@ -70,21 +75,20 @@ function Activity() {
     console.log('Selected date:', option);
   };
 
-  const calculateMonthBill = async(month:any) =>{
+  const calculateMonthBill = async (month: any) => {
     const username = accounts[0].username;
-    const year = new Date().getFullYear()
+    const year = new Date().getFullYear();
 
     try {
-        const response = await axios.post(`http://localhost:5000/monthlyBill?month=${month}&year=${year}&username=${username}`);
-        setMonthlyBill(response.data);
-        console.log("response",response.data);
-        
-    } catch (error:any) {
-        console.error("Error in calculating",error);
-        
+      const response = await axios.post(`http://localhost:5000/monthlyBillCount?month=${month}&year=${year}&username=${username}`);
+      setMonthlyBill(response.data);
+      console.log('response', response.data);
+    } catch (error: any) {
+      console.error('Error in calculating', error);
     }
-  }
+  };
   return (
+    <>
     <div>
       <div className='container mt-5'>
         <div className="row">
@@ -95,15 +99,20 @@ function Activity() {
                 <DatePicker
                   selected={selectedDate}
                   onChange={handleDateChange}
-                  dateFormat="yyyy/MM/dd"
+                  dateFormat="DD-MM-YYYY"
                   className="form-control"
                   placeholderText="Select a date"
                   inline
                 />
               </div>
             )}
-            <Mainchart />
+            <div className={showDatePicker ? 'opacity-50' : ''}>
+            <div className="d-flex justify-content-center align-items-center flex-column">
+            <Mainchart selectedDate={selectedDate}/>
+            </div>
+            </div>
           </div>
+          <div className="vr  p-0"></div>
           <div className="col p-2">
             <button className='btn btn-dark' onClick={handleMonthlyBillClick}>Monthly Bill</button>
             {showMonth && (
@@ -112,16 +121,24 @@ function Activity() {
                     options={monthOptions}
                     onChange={handleMonthChange}
                     className='form-control'
-                    placeholder="Select Month"/>
+                    placeholder="Select Month"
+                    />
+                    <div className='overlay'></div>
                 </div>
             )}
+            <div className={showMonth ? 'opacity-50' : ''}>
              <div className="d-flex justify-content-center align-items-center flex-column">
               <Piechart />
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+    <div>
+        <button className='btn btn-secondary mb-3 mt-3' onClick={() => navigate(-1)}>Back</button>
+    </div>
+    </>
   );
 }
 

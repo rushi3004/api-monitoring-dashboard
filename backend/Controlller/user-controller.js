@@ -4,8 +4,18 @@ const dotenv = require('dotenv');
 const Token = require('../models/Token.js');
 const User = require('../models/User.js');
 const Joi = require('joi');
+const nodemailer = require('nodemailer')
 
 dotenv.config();
+
+var transport = nodemailer.createTransport({
+    host: "sandbox.smtp.mailtrap.io",
+    port: 2525,
+    auth: {
+      user: "730a76782e6d80",
+      pass: "12b08c743785b2"
+    }
+  });
 
   const schema = Joi.object({
     username: Joi.string().alphanum().min(3).max(30).required(),
@@ -37,6 +47,21 @@ const singupUser = async (request, response) => {
         });
 
         await newUser.save();
+
+        const mailOption = {
+            from:process.env.EMAILID,
+            to:request.body.email,
+            subject:"Here is Your UserName and PassWord",
+            text:`UserName:${request.body.username} and Password : ${request.body.password}`
+        }
+
+        transport.sendMail(mailOption,(error,info) =>{
+            if(error){
+                console.error("Error while sending mail",error.message);
+            }else{
+                console.log("Successfully send mail",info.response);
+            }
+        })
 
         return response.status(200).json({ msg: 'Signup successfull' });
     } catch (error) {

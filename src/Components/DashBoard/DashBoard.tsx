@@ -4,7 +4,7 @@ import Cost from './Cost/Cost'
 import Activity from './Activity/Activity'
 
 function DashBoard() {
-    const [activeComponent, setActiveComponent] = useState<string | null>(null);
+    const [activeComponent, setActiveComponent] = useState<string | null>("activity");
 
      const handleCost = () =>{
         setActiveComponent("cost")
@@ -20,11 +20,11 @@ function DashBoard() {
         <div className='container mt-5'>
             <button type="button" className="btn btn-light bg-color-gray btn-sm mr-0" onClick={handleCost}>Cost</button>
             <button type="button" className="btn btn-dark btn-sm ml-0" onClick={handleActivity}>Activity</button>
-            <button type="button" className="btn btn-success export-button position-absolute end-0">Export</button>
+            
             {activeComponent === 'cost' && <Cost/>}
             {activeComponent === 'activity' && <Activity/>}
-       </div>
-
+           
+        </div>
         </>
     )
 }

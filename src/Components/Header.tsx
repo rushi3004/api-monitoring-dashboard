@@ -1,18 +1,16 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useContext } from 'react';
+import { Link } from 'react-router-dom';
+import  { DataContext } from '../Context/DataProvider';
+import logo from '../../src/logo.jpg'
 
 const Header: React.FC = () => {
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    navigate('/login');
-  };
+ const {accounts} = useContext(DataContext)
 
   return (
     <nav className="navbar navbar-expand-sm navbar-light bg-light mt-0">
       <div className="container d-flex justify-content-between align-items-center">
-         <Link className="navbar-brand" to="/">
-            My Blog
+         <Link className="navbar-brand " to="/">
+            <img src={logo} alt='Shar Your Thought' style={{ width: '100px', height: 'auto' }}/>
           </Link>
         <div>
           <ul className="navbar-nav">
@@ -22,9 +20,15 @@ const Header: React.FC = () => {
             <li className="nav-item">
               <Link className="nav-link" to="/">Home</Link>
             </li>
+            <li className='nav-item'>
+              <Link className='nav-link' to="/login">Logout</Link>
+            </li>
           </ul>
         </div>
-        <button className="btn btn-primary " onClick={handleLogout}>Logout</button>
+        {/* <button className="btn btn-dark " onClick={handleLogout}>Logout</button> */}
+        <Link to={`/`}>
+            <button className='btn btn-dark'>{accounts[0].username}</button>
+            </Link>
       </div>
     </nav>
   );

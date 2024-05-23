@@ -3,8 +3,9 @@ import Login from './Components/Login';
 import Signup from './Components/Signup';
 import {BrowserRouter, Routes,Route,Outlet,Navigate} from 'react-router-dom'
 import DataProvider from './Context/DataProvider';
-import HomePage from './Components/Home';
+import HomePage from './Components/Home/Home';
 import DashBoard from './Components/DashBoard/DashBoard';
+import CreatePost from './Components/Home/Post/CreatePost';
 
 
 const PrivateRoute = ({isAuthenticated,...props}:any) =>{
@@ -33,6 +34,11 @@ const App = () => {
       <Route path='/dashboard' element={<PrivateRoute isAuthenticated={isAuthenticated}/>}>
       <Route path='/dashboard' element={<DashBoard/>}/>
       </Route>
+
+      <Route path='/createPost' element={<PrivateRoute isAuthenticated={isAuthenticated}/>}>
+      <Route path='/createPost' element={<CreatePost/>}/>
+      </Route>
+
       </Routes>
     </div>
       </BrowserRouter>

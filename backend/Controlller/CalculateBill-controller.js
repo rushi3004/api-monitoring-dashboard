@@ -10,61 +10,48 @@ const CalBill = async (req, res) => {
         if (!date || !username) {
             return res.status(400).json({ error: "Date and username are required" });
         }
-        const formattedDate = moment(date).format('DD-MM-YY');
-        const isoDate = moment(date).toISOString();
 
+        // to set format
+        const parsedDate = moment(date, 'DD-MM-YYYY');
+        if (!parsedDate.isValid()) {
+            return res.status(400).json({ error: "Invalid date format. Please use DD-MM-YYYY." });
+        }
+
+        const formattedDate = parsedDate.format('DD-MM-YYYY');
+        const startOfDay = parsedDate.startOf('day').toISOString(); // Start of the day in UTC
+        const endOfDay = parsedDate.endOf('day').toISOString(); // End of the day in UTC
+
+        console.log("Formatted Date:", formattedDate);
+        console.log("Start of Day (UTC):", startOfDay);
+        console.log("End of Day (UTC):", endOfDay);
 
         let dailyBil = await Bill.findOne({
-            username,date:formattedDate
-        })
+            username,
+            date: formattedDate
+        });
+
         const apiCallCost = 5; // $5 per API call
         const downloadSizeCost = 0.05; // $0.05 per KB
 
-        if(!dailyBil){
-       
-        const apiCallResponse = await Counter.findOne({ createdDate: isoDate, username });
-        const apiCallCount = apiCallResponse ? apiCallResponse.count : 0;
-
-        const downloadStats = await DownloadStats.find({
-            username: username,
-            date: { $gte: new Date(isoDate), $lt: new Date(isoDate).setDate(new Date(isoDate).getDate() + 1) }
-        });
-
-        let totalDownloadSize = 0;
-        downloadStats.forEach(stat => {
-            totalDownloadSize += stat.fileSize;
-        });
-
-        const apiCallBill = apiCallCount * apiCallCost;
-        const downloadSizeBill = (totalDownloadSize * downloadSizeCost).toFixed(5);
-        const totalBill = (apiCallBill + downloadSizeBill);
-
-        console.log("apiCallBill", apiCallBill);
-        console.log("download", downloadSizeBill);
-
-        const bill = new Bill({
+        // Adjust query to use start and end of the day to match any datetime within the day
+        const apiCallResponse = await Counter.findOne({ 
             username,
-            date: formattedDate,
-            apiCallCount,
-            totalDownloadSize,
-            apiCallBill: apiCallBill,
-            downloadSizeBill: downloadSizeBill,
-            totalBill: (totalBill)
+            createdDate: {
+                $gte: new Date(startOfDay),
+                $lt: new Date(endOfDay)
+            }
         });
 
-        await bill.save();
+        console.log("API Call Response:", apiCallResponse);
 
-        res.status(200).json({ apiCallBill, downloadSizeBill, totalBill });
-    }else{
-
-        console.log("Daily Bill is updating");
-
-        const apiCallResponse = await Counter.findOne({ createdDate: isoDate, username });
         const apiCallCount = apiCallResponse ? apiCallResponse.count : 0;
 
         const downloadStats = await DownloadStats.find({
-            username: username,
-            date: { $gte: new Date(isoDate), $lt: new Date(isoDate).setDate(new Date(isoDate).getDate() + 1) }
+            username,
+            date: { 
+                $gte: new Date(startOfDay), 
+                $lt: new Date(endOfDay) 
+            }
         });
 
         let totalDownloadSize = 0;
@@ -74,24 +61,41 @@ const CalBill = async (req, res) => {
 
         const apiCallBill = apiCallCount * apiCallCost;
         const downloadSizeBill = (totalDownloadSize * downloadSizeCost).toFixed(5);
-        const totalBill = apiCallBill + downloadSizeBill;
+        const totalBill = (apiCallBill + parseFloat(downloadSizeBill)).toFixed(5);
 
-        console.log("apiCallBill", apiCallBill);
-        console.log("download", downloadSizeBill);
+        console.log("API Call Count:", apiCallCount);
+        console.log("API Call Bill:", apiCallBill);
+        console.log("Total Download Size:", totalDownloadSize);
+        console.log("Download Size Bill:", downloadSizeBill);
+        console.log("Total Bill:", totalBill);
 
-        dailyBil.apiCallCount = apiCallCount;
-        dailyBil.totalDownloadSize= totalDownloadSize;
-        dailyBil.apiCallBill = apiCallBill;
-        dailyBil.downloadSizeBill = downloadSizeBill;
-        dailyBil.totalBill = (totalBill);
-        dailyBil.date = formattedDate;
-        
+        if (!dailyBil) {
+            const bill = new Bill({
+                username,
+                date: formattedDate,
+                apiCallCount,
+                totalDownloadSize,
+                apiCallBill,
+                downloadSizeBill,
+                totalBill
+            });
 
-        await dailyBil.save();
+            await bill.save();
 
-        res.status(200).json({ totalBill:dailyBil.totalBill });
+            res.status(200).json({ apiCallBill, downloadSizeBill, totalBill });
+        } else {
+            console.log("Daily Bill is updating");
 
-    }
+            dailyBil.apiCallCount = apiCallCount;
+            dailyBil.totalDownloadSize = totalDownloadSize;
+            dailyBil.apiCallBill = apiCallBill;
+            dailyBil.downloadSizeBill = downloadSizeBill;
+            dailyBil.totalBill = totalBill;
+
+            await dailyBil.save();
+
+            res.status(200).json({ totalBill: dailyBil.totalBill });
+        }
     } catch (error) {
         console.error('Error in calculating bill', error);
         res.status(500).json({ error: 'Internal Server Error' });

@@ -14,7 +14,7 @@ const download = async (req,res) => {
         }else{
             downloadStats = new DownloadStats({
                 username:username,
-                fileSize: parseFloat(fileSize),
+                fileSize: parseFloat(fileSize).toFixed(6),
             date:currentDate  
             })
         }
@@ -41,7 +41,7 @@ function getFileSize(filePath){
     const fileSizeInBytes = stats.size
     console.log(stats.size);
     const fileSizeInGB = fileSizeInBytes/(1024 * 1024* 1024)
-    return fileSizeInGB.toFixed(5)
+    return fileSizeInGB.toFixed(6)
 }
 
 const getDownloadSize =  async (req, res) => {
