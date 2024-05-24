@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Header from '../Header';
-import image from '../../backgroundimage.jpg'
+import image from '../../post1.jpg'
 import Download from './Download';
 import GetPost from './Post/GetPost';
 import { useNavigate } from 'react-router-dom';
@@ -9,10 +9,8 @@ import Footer from '../Footer';
 
 const HomePage: React.FC = () => {
   
-  const [createpost,setCreatePost] = useState<any>(false)
   const navigate = useNavigate()
 const handleCreate = () => {
-  // setCreatePost((prevCreate:any) => !prevCreate)
   navigate('/createPost')
 }
   return (
@@ -29,7 +27,6 @@ const handleCreate = () => {
           <div className='d-flex justify-content-center align-items-center mt-5'>
           <button type='button' className='btn btn-dark' onClick={handleCreate}>Create Post</button>
           </div>
-          {/* {createpost  && <CreatePost/> } */}
           <GetPost/>
         </div>
         

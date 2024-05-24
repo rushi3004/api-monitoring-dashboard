@@ -11,6 +11,8 @@ interface postData {
   image: string | null;
 }
 
+
+
 function GetPost() {
   const [post, setPost] = useState<postData[] | undefined>(undefined);
   const { accounts } = useContext(DataContext);

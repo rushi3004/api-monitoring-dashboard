@@ -7,7 +7,7 @@ const Header: React.FC = () => {
  const {accounts} = useContext(DataContext)
 
   return (
-    <nav className="navbar navbar-expand-sm navbar-light bg-light mt-0">
+    <nav className="navbar navbar-expand-sm navbar-light bg-light mt-0" style={{ height: '80px' }}>
       <div className="container d-flex justify-content-between align-items-center">
          <Link className="navbar-brand " to="/">
             <img src={logo} alt='Shar Your Thought' style={{ width: '100px', height: 'auto' }}/>
@@ -15,13 +15,13 @@ const Header: React.FC = () => {
         <div>
           <ul className="navbar-nav">
             <li className="nav-item">
-              <Link className="nav-link" to="/dashboard">Dashboard</Link>
+              <Link className="nav-link text-dark" to="/dashboard">Dashboard</Link>
             </li>
             <li className="nav-item">
-              <Link className="nav-link" to="/">Home</Link>
+              <Link className="nav-link text-dark" to="/">Home</Link>
             </li>
             <li className='nav-item'>
-              <Link className='nav-link' to="/login">Logout</Link>
+              <Link className='nav-link text-dark' to="/login">Logout</Link>
             </li>
           </ul>
         </div>

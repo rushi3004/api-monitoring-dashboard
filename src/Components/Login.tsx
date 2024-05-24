@@ -3,7 +3,6 @@ import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { DataContext } from '../Context/DataProvider';
-import loginImage from '../../src/login.jpg';
 
 type IsUserAuthenticated = (authenticated: boolean) => void;
 

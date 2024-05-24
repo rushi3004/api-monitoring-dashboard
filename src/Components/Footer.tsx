@@ -33,7 +33,7 @@ const Footer: React.FC = () => {
 
   return (
     <div className=" text-white p-3 mt-5" style={{
-        background: "linear-gradient(90deg, gray 20%, white 100%, rgba(0,212,255,1) 100%)", 
+        background: "linear-gradient(90deg, gray 20%, white 80%, rgba(0,212,255,1) 100%)", 
       }} >
       <Container>
         <Row>
@@ -71,3 +71,7 @@ const Footer: React.FC = () => {
 };
 
 export default Footer;
+
+
+
+

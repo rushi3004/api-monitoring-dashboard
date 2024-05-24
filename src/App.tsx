@@ -39,6 +39,10 @@ const App = () => {
       <Route path='/createPost' element={<CreatePost/>}/>
       </Route>
 
+      {/* <Route path='/chatBot' element={<PrivateRoute isAuthenticated={isAuthenticated}/>}>
+      <Route path='/chatBot' element={<CreatePost/>}/>
+      </Route> */}
+
       </Routes>
     </div>
       </BrowserRouter>

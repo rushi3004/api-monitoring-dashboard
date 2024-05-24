@@ -29,8 +29,7 @@ function Cost() {
 
     useEffect(() => {
         fetchBillData();
-        
-    }, []);
+    }, [selectedMonth]);
 
     const fetchBillData =async () => {
         await axios.get(`http://localhost:5000/displaybill?username=${accounts[0].username}&month=${selectedMonth}`)
@@ -45,11 +44,16 @@ function Cost() {
     
 
     const exportToPDF = () => {
-        const doc = new jsPDF();
-        doc.text('Monthly Cost Report', 10, 10);
+        const doc = new (jsPDF as any)();
+
+        const topMargin = 20;
+        doc.text('INVOICE', 10, topMargin);
+
+        const tableTopMargin = topMargin + 10;
         doc.autoTable({
             head: [['Date', 'API Call Count', 'API Call Bill', 'Download Size', 'Download Size Bill', 'Total Bill']],
-            body: data.map((item:any) => [item.date, item.apiCallCount, item.apiCallBill, item.totalDownloadSize.toFixed(4), item.downloadSizeBill.toFixed(4), item.totalBill])
+            body: data.map((item:any) => [item.date, item.apiCallCount, item.apiCallBill, item.totalDownloadSize.toFixed(4), item.downloadSizeBill.toFixed(4), item.totalBill]),
+            startY : tableTopMargin
         });
         doc.save('monthly_cost_report.pdf');
     };
@@ -57,17 +61,20 @@ function Cost() {
     return (
         <>
             <div className='mt-5'>
+                <div style={{display:'flex', justifyContent:'space-between'}}>
                 <div>
-                    <label htmlFor='month'>Select Month:</label>
-                    <select id="month" value={selectedMonth} onChange={(e) => setSelectedMonth(parseInt(e.target.value))}>
+                    <label htmlFor='month' style={{marginRight:"10px"}}>Select Month:</label>
+                    <select style={{marginRight:"15px"}}  id="month" value={selectedMonth} onChange={(e) => setSelectedMonth(parseInt(e.target.value))}>
                         {months.map(month => (
-                            <option key={month.value} value={month.value}>{month.label}</option>
+                            <option key={month.value} value={month.value}  >{month.label}</option>
                         ))}
                     </select>
-                    <button onClick={fetchBillData} className='btn btn-dark btn-sm m-2'>Get Data</button>
-                    <button onClick={exportToPDF} className='btn btn-success btn-sm m-2'>Export to PDF</button>
+                    <button onClick={fetchBillData} className='btn btn-dark btn-sm'>Get Data</button>
                 </div>
-
+                <div>
+                    <button onClick={exportToPDF} className='btn btn-success btn-sm'>Export to PDF</button>
+                </div>
+                </div>
                 {data.length > 0 &&
                     <>
                         <table className='table table-striped table-bordered table-hover mt-3'>

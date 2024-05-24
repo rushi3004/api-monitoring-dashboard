@@ -56,9 +56,11 @@ function Mainchart({selectedDate}:MainChartProp) {
   console.log("data",dinamicData);
   return (
     <>
+    <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px', width:'500px'}}>
       {dinamicData !== null ? (
-        <Line data={dinamicData} style={{height:"300px"}}/>
+        <Line data={dinamicData}/>
       ) : "Loading data is null...."}
+      </div>
     </>
   );
 }
